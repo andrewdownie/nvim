@@ -12,6 +12,11 @@ Plug 'ctrlpvim/ctrlp.vim' " fuzzy find files
 Plug 'scrooloose/nerdcommenter'
 Plug 'prettier/vim-prettier', { 'do': 'npm install' }
 
+" Git diff
+"Plug 'tpope/vim-fugitive'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'tanvirtin/vgit.nvim'
+
 Plug 'christoomey/vim-tmux-navigator'
 
 Plug 'simrat39/symbols-outline.nvim'
@@ -24,6 +29,10 @@ Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
 call plug#end()
 
 cd ~/Documents
+
+lua << EOF
+  require('vgit').setup()
+EOF
 
 lua require('init')
 

@@ -1,4 +1,6 @@
 -- init.lua
+--require('vgit').setup()
+
 vim.g.symbols_outline = {
     highlight_hovered_item = true,
     show_guides = true,
@@ -16,3 +18,4 @@ vim.g.symbols_outline = {
         focus_location = "<Cr>",
     },
 }
+
