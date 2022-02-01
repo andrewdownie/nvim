@@ -17,6 +17,8 @@ Plug 'prettier/vim-prettier', { 'do': 'npm install' }
 Plug 'nvim-lua/plenary.nvim'
 Plug 'tanvirtin/vgit.nvim'
 
+Plug 'itspriddle/zoomwin'
+
 Plug 'christoomey/vim-tmux-navigator'
 
 Plug 'simrat39/symbols-outline.nvim'
@@ -36,10 +38,11 @@ EOF
 
 lua require('init')
 
-nmap <C-o> :SymbolsOutline<CR>
+nmap <C-.> :SymbolsOutline<CR>
 
 inoremap jk <ESC>
-nmap <C-n> :NERDTreeToggle ~/Documents<CR>
+"nmap <C-n> :NERDTreeToggle ~/Documents<CR>
+nmap <C-,> :NERDTreeToggle ~/Documents<CR>
 vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
@@ -260,3 +263,12 @@ tnoremap <C-[> <C-\><C-n>
 " Sync system clipboard and neovim clipboard
 set clipboard+=unnamedplus
 
+" Add name of file to bottom of every window
+set statusline=%t
+
+" Toggle open/closed a terminal accross the bottom of the screen, cutting
+" across all existing windows
+nmap <C-'> :bo sp<CR> :term<CR> i
+
+" Toggle maximzing a window
+nmap <C-m> <C-w>o
