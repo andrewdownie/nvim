@@ -1,34 +1,55 @@
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
 
+" Libraries
+Plug 'nvim-lua/plenary.nvim' " vgit and vim-nerd-tree-tabs depend on plenary
+
+" Code completion (how do I setup language servers tho?)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" File list
 Plug 'scrooloose/nerdtree'
 Plug 'tsony-tsonev/nerdtree-git-plugin'
-"Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
-Plug 'ryanoasis/vim-devicons'
-Plug 'airblade/vim-gitgutter'
-Plug 'ctrlpvim/ctrlp.vim' " fuzzy find files
-Plug 'scrooloose/nerdcommenter'
-Plug 'prettier/vim-prettier', { 'do': 'npm install' }
+Plug 'jistr/vim-nerdtree-tabs' " Persistant nerd tree between tabs, to make it feel like a single panel
 
-" Git diff
+"Plug 'Xuyuanp/nerdtree-git-plugin'
+"
+" Fuzzy file search (why it doesn't find some files when I type the exact name tho?)
+Plug 'ctrlpvim/ctrlp.vim' 
+
+" Toggle line comment with ctrl+/ in command mode
+Plug 'scrooloose/nerdcommenter'
+
+" Git diff (can't seem to get it to list all modified files project wide? need
+" to add config to define what 'project wide' means maybe?)
 "Plug 'tpope/vim-fugitive'
-Plug 'nvim-lua/plenary.nvim'
 Plug 'tanvirtin/vgit.nvim'
 
+" Toggle maximzing a single window
 Plug 'itspriddle/zoomwin'
 
+" single command: ctrl+[hjkl] to jump between windows instead of default key chord ctrl+w [hjkl]
 Plug 'christoomey/vim-tmux-navigator'
 
+" Ability to toggle terminal vscode style
+Plug 'akinsho/toggleterm.nvim'
+
+" Linting
+Plug 'prettier/vim-prettier', { 'do': 'npm install' }
+
+" Icons
+Plug 'ryanoasis/vim-devicons'
+
+" Themes
 Plug 'morhetz/gruvbox'
 
+" Syntax
 Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
 
-" Initialize plugin system
 call plug#end()
 
-cd ~/Documents
+cd ~/Documents/Development
 
 lua << EOF
   require('vgit').setup()
@@ -237,7 +258,8 @@ nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
 " Show commands
 nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document
-nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
+nnoremap <silent> <C-.>  :<C-u>CocList outline<cr>
+nnoremap <silent> <C-o>  :<C-u>CocList outline<cr>
 " Search workspace symbols
 nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item.
@@ -260,9 +282,56 @@ set clipboard+=unnamedplus
 " Add name of file to bottom of every window
 set statusline=%t
 
-" Toggle open/closed a terminal accross the bottom of the screen, cutting
-" across all existing windows
-nmap <C-'> :bo sp<CR> :term<CR> i
-
-" Toggle maximzing a window
+" Toggle maximzing a window (just a hotkey to call only, zoomwin plugin does
+" the actual toggling)
 nmap <C-m> <C-w>o
+
+" Fix errors caused by running zoomwin in neovim
+if has('nvim')
+    " removed 'key', 'oft', 'sn', 'tx' options which do not work with nvim
+    let g:zoomwin_localoptlist = ["ai","ar","bh","bin","bl","bomb","bt","cfu","ci","cin","cink","cino","cinw","cms","com","cpt","diff","efm","eol","ep","et","fenc","fex","ff","flp","fo","ft","gp","imi","ims","inde","inex","indk","inf","isk","kmp","lisp","mps","ml","ma","mod","nf","ofu","pi","qe","ro","sw","si","sts","spc","spf","spl","sua","swf","smc","syn","ts","tw","udf","wfh","wfw","wm"]
+endif
+
+" Allow ctrl+[hjkl] to move between windows even when the cursor is captured
+" by a terminal
+tnoremap <C-h> <C-\><C-n><C-w>h
+tnoremap <C-j> <C-\><C-n><C-w>j
+tnoremap <C-k> <C-\><C-n><C-w>k
+tnoremap <C-l> <C-\><C-n><C-w>l
+
+" Toggle terminal
+
+nmap <C-'> :ToggleTerm 1<CR>
+tnoremap <C-'> <C-\><C-n>:ToggleTerm 1<CR>
+
+" I'd rarther use the ToggleTerm plugin for one termainl, and then open other
+" terminals in new tabs / windows manually as needed
+"nmap <C-`> :ToggleTermToggleAll<CR>
+"tnoremap <C-`> <C-\><C-n>:ToggleTermToggleAll<CR>
+"
+"nmap <C-1> :ToggleTerm 1<CR>
+"tnoremap <C-1> <C-\><C-n>:ToggleTerm 1<CR>
+
+"nmap <C-2> :ToggleTerm 2<CR>
+"tnoremap <C-2> <C-\><C-n>:ToggleTerm 2<CR>
+
+"nmap <C-3> :ToggleTerm 3<CR>
+"tnoremap <C-3> <C-\><C-n>:ToggleTerm 3<CR>
+
+"nmap <C-4> :ToggleTerm 4<CR>
+"tnoremap <C-4> <C-\><C-n>:ToggleTerm 4<CR>
+
+"nmap <C-5> :ToggleTerm 5<CR>
+"tnoremap <C-5> <C-\><C-n>:ToggleTerm 5<CR>
+
+"nmap <C-6> :ToggleTerm 6<CR>
+"tnoremap <C-6> <C-\><C-n>:ToggleTerm 6<CR>
+
+"nmap <C-7> :ToggleTerm 7<CR>
+"tnoremap <C-7> <C-\><C-n>:ToggleTerm 7<CR>
+
+"nmap <C-8> :ToggleTerm 8<CR>
+"tnoremap <C-8> <C-\><C-n>:ToggleTerm 8<CR>
+
+"nmap <C-9> :ToggleTerm 9<CR>
+"tnoremap <C-9> <C-\><C-n>:ToggleTerm 9<CR>
