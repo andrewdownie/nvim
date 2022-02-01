@@ -21,8 +21,6 @@ Plug 'itspriddle/zoomwin'
 
 Plug 'christoomey/vim-tmux-navigator'
 
-Plug 'simrat39/symbols-outline.nvim'
-
 Plug 'morhetz/gruvbox'
 
 Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
@@ -35,10 +33,6 @@ cd ~/Documents
 lua << EOF
   require('vgit').setup()
 EOF
-
-lua require('init')
-
-nmap <C-.> :SymbolsOutline<CR>
 
 inoremap jk <ESC>
 "nmap <C-n> :NERDTreeToggle ~/Documents<CR>
