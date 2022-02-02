@@ -26,9 +26,6 @@ Plug 'scrooloose/nerdcommenter'
 "Plug 'tpope/vim-fugitive'
 Plug 'tanvirtin/vgit.nvim'
 
-" Toggle maximzing a single window
-Plug 'itspriddle/zoomwin'
-
 " single command: ctrl+[hjkl] to jump between windows instead of default key chord ctrl+w [hjkl]
 Plug 'christoomey/vim-tmux-navigator'
 
@@ -56,8 +53,7 @@ lua << EOF
 EOF
 
 inoremap jk <ESC>
-"nmap <C-n> :NERDTreeToggle ~/Documents<CR>
-nmap <C-,> :NERDTreeToggle ~/Documents<CR>
+nmap <C-m> :NERDTreeToggle ~/Documents/Development<CR>
 vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
@@ -250,6 +246,10 @@ command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organize
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
 set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
+" Stop space bar from moving cursor in normal mode to make it more comfortable
+" to use space bar as a modifier key for coc commands
+nnoremap <space> <nop>
+
 " Using CocList
 " Show all diagnostics
 nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
@@ -258,8 +258,7 @@ nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
 " Show commands
 nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document
-nnoremap <silent> <C-.>  :<C-u>CocList outline<cr>
-nnoremap <silent> <C-o>  :<C-u>CocList outline<cr>
+nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
 " Search workspace symbols
 nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item.
@@ -280,28 +279,23 @@ tnoremap <C-[> <C-\><C-n>
 set clipboard+=unnamedplus
 
 " Add name of file to bottom of every window
-set statusline=%t
+set statusline+=%t
 
-" Toggle maximzing a window (just a hotkey to call only, zoomwin plugin does
-" the actual toggling)
-nmap <C-m> <C-w>o
-
-" Fix errors caused by running zoomwin in neovim
-if has('nvim')
-    " removed 'key', 'oft', 'sn', 'tx' options which do not work with nvim
-    let g:zoomwin_localoptlist = ["ai","ar","bh","bin","bl","bomb","bt","cfu","ci","cin","cink","cino","cinw","cms","com","cpt","diff","efm","eol","ep","et","fenc","fex","ff","flp","fo","ft","gp","imi","ims","inde","inex","indk","inf","isk","kmp","lisp","mps","ml","ma","mod","nf","ofu","pi","qe","ro","sw","si","sts","spc","spf","spl","sua","swf","smc","syn","ts","tw","udf","wfh","wfw","wm"]
-endif
+" Minimize all windows in current tabs
+nmap <C-,> :NERDTreeClose<CR><bar><C-w>_<bar><C-w>\|
+" Open and auto size all windows in current tab
+nmap <C-.> :NERDTree<CR><bar><C-w>=<bar>:wincmd p<CR>
 
 " Allow ctrl+[hjkl] to move between windows even when the cursor is captured
 " by a terminal
-tnoremap <C-h> <C-\><C-n><C-w>h
-tnoremap <C-j> <C-\><C-n><C-w>j
-tnoremap <C-k> <C-\><C-n><C-w>k
-tnoremap <C-l> <C-\><C-n><C-w>l
+"tnoremap <C-h> <C-\><C-n><C-w>h
+"tnoremap <C-j> <C-\><C-n><C-w>j
+"tnoremap <C-k> <C-\><C-n><C-w>k
+"tnoremap <C-l> <C-\><C-n><C-w>l
 
 " Toggle terminal
 
-nmap <C-'> :ToggleTerm 1<CR>
+nmap <C-'> :ToggleTerm 1 direction=float<CR>
 tnoremap <C-'> <C-\><C-n>:ToggleTerm 1<CR>
 
 " I'd rarther use the ToggleTerm plugin for one termainl, and then open other
