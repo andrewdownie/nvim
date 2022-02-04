@@ -1,9 +1,6 @@
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
 
-" Libraries
-Plug 'nvim-lua/plenary.nvim' " vgit and vim-nerd-tree-tabs depend on plenary
-
 " Code completion (how do I setup language servers tho?)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
@@ -11,9 +8,6 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'scrooloose/nerdtree'
 Plug 'tsony-tsonev/nerdtree-git-plugin'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
-"Plug 'jistr/vim-nerdtree-tabs' " Persistant nerd tree between tabs, to make it feel like a single panel
-
-"Plug 'Xuyuanp/nerdtree-git-plugin'
 "
 " Fuzzy file search
 Plug 'ctrlpvim/ctrlp.vim' 
@@ -43,6 +37,11 @@ Plug 'morhetz/gruvbox'
 Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
 
 call plug#end()
+
+" Highlight the current line
+set cursorline
+
+command Vimrc :e $MYVIMRC
 
 nmap <C-g> :NERDTreeClose<CR>:Git<CR>
 
@@ -255,6 +254,7 @@ nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
 nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document
 nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
+nnoremap <silent> <C-;>  :<C-u>CocList outline<cr>
 " Search workspace symbols
 nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item.
