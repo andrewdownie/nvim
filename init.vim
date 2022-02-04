@@ -11,20 +11,18 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'scrooloose/nerdtree'
 Plug 'tsony-tsonev/nerdtree-git-plugin'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
-Plug 'jistr/vim-nerdtree-tabs' " Persistant nerd tree between tabs, to make it feel like a single panel
+"Plug 'jistr/vim-nerdtree-tabs' " Persistant nerd tree between tabs, to make it feel like a single panel
 
 "Plug 'Xuyuanp/nerdtree-git-plugin'
 "
-" Fuzzy file search (why it doesn't find some files when I type the exact name tho?)
+" Fuzzy file search
 Plug 'ctrlpvim/ctrlp.vim' 
 
 " Toggle line comment with ctrl+/ in command mode
 Plug 'scrooloose/nerdcommenter'
 
-" Git diff (can't seem to get it to list all modified files project wide? need
-" to add config to define what 'project wide' means maybe?)
-"Plug 'tpope/vim-fugitive'
-Plug 'tanvirtin/vgit.nvim'
+" Git diff
+Plug 'tpope/vim-fugitive'
 
 " single command: ctrl+[hjkl] to jump between windows instead of default key chord ctrl+w [hjkl]
 Plug 'christoomey/vim-tmux-navigator'
@@ -46,20 +44,17 @@ Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
 
 call plug#end()
 
-cd ~/Documents/Development
+nmap <C-g> :NERDTreeClose<CR>:Git<CR>
 
-lua << EOF
-  require('vgit').setup()
-EOF
+nmap <C-n> :NERDTreeToggle<CR>
 
-inoremap jk <ESC>
-nmap <C-m> :NERDTreeToggle ~/Documents/Development<CR>
 vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
 " Open nerd tree on start
-autocmd VimEnter * NERDTree
-
+autocmd VimEnter * NERDTree ~/Documents/Development
+" Sync nerd tree between tabs
+autocmd BufWinEnter * NERDTreeMirror
 
 " open NERDTree automatically
 "autocmd StdinReadPre * let s:std_in=1
@@ -102,7 +97,8 @@ let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclu
 noremap <silent> <expr> j (v:count == 0 ? 'gj' : 'j')
 noremap <silent> <expr> k (v:count == 0 ? 'gk' : 'k')
 
-set relativenumber
+" Hybrid number mode
+set number relativenumber
 
 set smarttab
 set cindent
@@ -279,53 +275,13 @@ tnoremap <C-[> <C-\><C-n>
 set clipboard+=unnamedplus
 
 " Add name of file to bottom of every window
-set statusline+=%t
+"set statusline+=%t
 
-" Minimize all windows in current tabs
+" Minimize all windows in current tab
 nmap <C-,> :NERDTreeClose<CR><bar><C-w>_<bar><C-w>\|
 " Open and auto size all windows in current tab
 nmap <C-.> :NERDTree<CR><bar><C-w>=<bar>:wincmd p<CR>
 
-" Allow ctrl+[hjkl] to move between windows even when the cursor is captured
-" by a terminal
-"tnoremap <C-h> <C-\><C-n><C-w>h
-"tnoremap <C-j> <C-\><C-n><C-w>j
-"tnoremap <C-k> <C-\><C-n><C-w>k
-"tnoremap <C-l> <C-\><C-n><C-w>l
-
 " Toggle terminal
-
 nmap <C-'> :ToggleTerm 1 direction=float<CR>
 tnoremap <C-'> <C-\><C-n>:ToggleTerm 1<CR>
-
-" I'd rarther use the ToggleTerm plugin for one termainl, and then open other
-" terminals in new tabs / windows manually as needed
-"nmap <C-`> :ToggleTermToggleAll<CR>
-"tnoremap <C-`> <C-\><C-n>:ToggleTermToggleAll<CR>
-"
-"nmap <C-1> :ToggleTerm 1<CR>
-"tnoremap <C-1> <C-\><C-n>:ToggleTerm 1<CR>
-
-"nmap <C-2> :ToggleTerm 2<CR>
-"tnoremap <C-2> <C-\><C-n>:ToggleTerm 2<CR>
-
-"nmap <C-3> :ToggleTerm 3<CR>
-"tnoremap <C-3> <C-\><C-n>:ToggleTerm 3<CR>
-
-"nmap <C-4> :ToggleTerm 4<CR>
-"tnoremap <C-4> <C-\><C-n>:ToggleTerm 4<CR>
-
-"nmap <C-5> :ToggleTerm 5<CR>
-"tnoremap <C-5> <C-\><C-n>:ToggleTerm 5<CR>
-
-"nmap <C-6> :ToggleTerm 6<CR>
-"tnoremap <C-6> <C-\><C-n>:ToggleTerm 6<CR>
-
-"nmap <C-7> :ToggleTerm 7<CR>
-"tnoremap <C-7> <C-\><C-n>:ToggleTerm 7<CR>
-
-"nmap <C-8> :ToggleTerm 8<CR>
-"tnoremap <C-8> <C-\><C-n>:ToggleTerm 8<CR>
-
-"nmap <C-9> :ToggleTerm 9<CR>
-"tnoremap <C-9> <C-\><C-n>:ToggleTerm 9<CR>
