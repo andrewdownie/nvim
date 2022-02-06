@@ -1,5 +1,9 @@
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
+
+" Libraries
+Plug 'nvim-lua/plenary.nvim'
+
 " Start screen for vim (hoping to use this to save and load sessions with a
 " GUI)
 Plug 'mhinz/vim-startify' 
@@ -18,8 +22,12 @@ Plug 'ctrlpvim/ctrlp.vim'
 " Toggle line comment with ctrl+/ in command mode
 Plug 'scrooloose/nerdcommenter'
 
-" Git diff
+" Git diff and integrated git tooling
 Plug 'tpope/vim-fugitive'
+
+" Show git blame for the current line (gitlens style), and highlight modified lines in the
+" sidebar (vscode style)
+Plug 'tanvirtin/vgit.nvim'
 
 " single command: ctrl+[hjkl] to jump between windows instead of default key chord ctrl+w [hjkl]
 Plug 'christoomey/vim-tmux-navigator'
@@ -41,13 +49,28 @@ Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
 
 call plug#end()
 
+" Setup required for vgit to work
+lua << EOF
+require('vgit').setup()
+EOF
+
+" Custom global variables
+let g:oneWinShown = 0
+
 " Highlight the current line
 set cursorline
 
+" Set the scroll amount to be 25% of window height
+"set scroll=50
+
+" Open neovim rc
 command Vimrc :e $MYVIMRC
 
-" Open fugitive (interactive equivilent of 'git status')
-nmap <C-g> :Git<CR>
+" Open fugitive (interactive equivalent of 'git status')
+nmap <C-g> :Git<bar>:call ShowAllWin()<CR>
+" Open fugitive git blame map (press 'o' to open version from that commit, you
+" can then recursively call git blame on that commit)
+nmap <C-b> :Git blame<CR>
 
 " ctrl+n to open nerdtree (n for nerdtree)
 nmap <C-n> :NERDTreeToggle<CR>
@@ -233,8 +256,9 @@ omap if <Plug>(coc-funcobj-i)
 omap af <Plug>(coc-funcobj-a)
 
 " Use <C-d> for select selections ranges, needs server support, like: coc-tsserver, coc-python
-nmap <silent> <C-d> <Plug>(coc-range-select)
-xmap <silent> <C-d> <Plug>(coc-range-select)
+"nmap <silent> <C-d> <Plug>(coc-range-select) " ctrl+d is jump up half a page
+"in default vim
+"xmap <silent> <C-d> <Plug>(coc-range-select)
 
 " Use `:Format` to format current buffer
 command! -nargs=0 Format :call CocAction('format')
@@ -246,7 +270,12 @@ command! -nargs=? Fold :call     CocAction('fold', <f-args>)
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
-set statusline=%t
+set statusline=
+set statusline+=%t                          " File name
+set statusline+=%=                          " Right align
+set statusline+=%10((%l,%c)%)               " Line and column
+set statusline+=\                           " Space
+set statusline+=%-3P                        " Percentage
 "set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
 " Stop space bar from moving cursor in normal mode to make it more comfortable
@@ -287,28 +316,21 @@ nmap <C-'> :ToggleTerm 1 direction=float<CR>
 tnoremap <C-'> <C-\><C-n>:ToggleTerm 1<CR>
 
 " Toggle window to be maximized, or resize all windows
-nmap <expr><C-m> IsWinMaximized() == 1
-      \ ? ':NERDTree<CR><bar><C-w>=<bar>:wincmd p<CR>'
-      \ : ':NERDTreeClose<CR><bar><C-w>_<bar><C-w>\|'
+nnoremap <expr><C-,> g:oneWinShown == 1
+      \ ? ':call ShowAllWin()<CR>'
+      \ : ':call ShowOneWin()<CR>'
 
-" Return 1 if the current window is effectively 'maximized'
-function IsWinMaximized()
-  let termHeight = str2float(&lines)
-  let termWidth = str2float(&columns)
-
-  let winWidth = winwidth('%')
-  let winHeight = winheight('%')
-
-  let heightPercent = winHeight / termHeight
-  let widthPercent = winWidth / termWidth
-
-  echo heightPercent
-  echo widthPercent
-
-  if heightPercent > 0.8 && widthPercent > 0.8
-    echo 'true'
-    return 1
-  endif
-  echo 'false'
-  return 0
+function ShowAllWin()
+  :NERDTree
+  :exe "normal \<C-w>="
+  :wincmd p
+  :let g:oneWinShown = 0
 endfunction
+
+function ShowOneWin()
+  :NERDTreeClose
+  :exe "normal \<C-w>_"
+  :exe "normal \<C-w>|"
+  :let g:oneWinShown = 1
+endfunction
+
