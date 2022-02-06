@@ -1,5 +1,8 @@
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
+" Start screen for vim (hoping to use this to save and load sessions with a
+" GUI)
+Plug 'mhinz/vim-startify' 
 
 " Code completion (how do I setup language servers tho?)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -43,10 +46,14 @@ set cursorline
 
 command Vimrc :e $MYVIMRC
 
-nmap <C-g> :NERDTreeClose<CR>:Git<CR>
+" Open fugitive (interactive equivilent of 'git status')
+nmap <C-g> :Git<CR>
 
+" ctrl+n to open nerdtree (n for nerdtree)
 nmap <C-n> :NERDTreeToggle<CR>
 
+" Comment a list using ctrl+/ in command mode (save as VSCode with vim
+" extension)
 vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
@@ -239,7 +246,8 @@ command! -nargs=? Fold :call     CocAction('fold', <f-args>)
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
-set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+set statusline=%t
+"set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
 " Stop space bar from moving cursor in normal mode to make it more comfortable
 " to use space bar as a modifier key for coc commands
@@ -274,14 +282,33 @@ tnoremap <C-[> <C-\><C-n>
 " Sync system clipboard and neovim clipboard
 set clipboard+=unnamedplus
 
-" Add name of file to bottom of every window
-"set statusline+=%t
-
-" Minimize all windows in current tab
-nmap <C-,> :NERDTreeClose<CR><bar><C-w>_<bar><C-w>\|
-" Open and auto size all windows in current tab
-nmap <C-.> :NERDTree<CR><bar><C-w>=<bar>:wincmd p<CR>
-
 " Toggle terminal
 nmap <C-'> :ToggleTerm 1 direction=float<CR>
 tnoremap <C-'> <C-\><C-n>:ToggleTerm 1<CR>
+
+" Toggle window to be maximized, or resize all windows
+nmap <expr><C-m> IsWinMaximized() == 1
+      \ ? ':NERDTree<CR><bar><C-w>=<bar>:wincmd p<CR>'
+      \ : ':NERDTreeClose<CR><bar><C-w>_<bar><C-w>\|'
+
+" Return 1 if the current window is effectively 'maximized'
+function IsWinMaximized()
+  let termHeight = str2float(&lines)
+  let termWidth = str2float(&columns)
+
+  let winWidth = winwidth('%')
+  let winHeight = winheight('%')
+
+  let heightPercent = winHeight / termHeight
+  let widthPercent = winWidth / termWidth
+
+  echo heightPercent
+  echo widthPercent
+
+  if heightPercent > 0.8 && widthPercent > 0.8
+    echo 'true'
+    return 1
+  endif
+  echo 'false'
+  return 0
+endfunction
