@@ -1,6 +1,9 @@
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
 
+" Smooth scroll
+Plug 'yuttie/comfortable-motion.vim'
+
 " Libraries
 Plug 'nvim-lua/plenary.nvim'
 
@@ -15,9 +18,12 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'scrooloose/nerdtree'
 Plug 'tsony-tsonev/nerdtree-git-plugin'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
-"
+
 " Fuzzy file search
 Plug 'ctrlpvim/ctrlp.vim' 
+
+" Vim marks
+Plug 'Yilin-Yang/vim-markbar'
 
 " Toggle line comment with ctrl+/ in command mode
 Plug 'scrooloose/nerdcommenter'
@@ -54,40 +60,61 @@ lua << EOF
 require('vgit').setup()
 EOF
 
+" Startify settings
+"let g:startify_session_persistence = 1
+
 " Custom global variables
 let g:oneWinShown = 0
+
+" Prevent :qa from closing neovim, instead offer to save session, and then
+" return to Startify. Neovim can then be exited from Startify (q or :q). Close
+" nerd tree first to prevent issues with saving session.
+cabbrev qa :NERDTreeClose<CR><bar>:SSave<CR><bar>:SClose<CR>lcd %:p:h<CR>
+
+" Set cwd of buffer so that nerd tree can open the correct cwd upon session
+" being restored
+"autocmd BufEnter * 
+
+" Markbar settings
+"function! FormatMarks(mark_data) abort
+  "return printf('l: %4d', mark_data['line'])
+"endfunction
+
+"let g:markbar_num_lines_context = 1
+"let g:markbar_mark_name_format_string = '%s'
+"let g:markbar_mark_name_arguments = [ function('FormatMarks')]
+"let g:markbar_file_mark_format_string = '%s'
+"let g:markbar_file_mark_arguments = [ function('FormatMarks')]
+"let g:markbar_peekaboo_width = 50 
 
 " Highlight the current line
 set cursorline
 
-" Set the scroll amount to be 25% of window height
-"set scroll=50
+" Ignorecase while searching
+set ignorecase
 
 " Open neovim rc
 command Vimrc :e $MYVIMRC
 
+" Close nerd tree when doing a vertical diff
+nnoremap dv :NERDTreeClose
+
 " Open fugitive (interactive equivalent of 'git status')
-nmap <C-g> :Git<bar>:call ShowAllWin()<CR>
+nmap <C-g> :NERDTreeClose<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>6j
 " Open fugitive git blame map (press 'o' to open version from that commit, you
 " can then recursively call git blame on that commit)
 nmap <C-b> :Git blame<CR>
 
 " ctrl+n to open nerdtree (n for nerdtree)
-nmap <C-n> :NERDTreeToggle<CR>
+nnoremap <C-n> :NERDTreeToggle<CR>
 
 " Comment a list using ctrl+/ in command mode (save as VSCode with vim
 " extension)
 vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
-" Open nerd tree on start
-autocmd VimEnter * NERDTree ~/Documents/Development
 " Sync nerd tree between tabs
 autocmd BufWinEnter * NERDTreeMirror
-
-" open NERDTree automatically
-"autocmd StdinReadPre * let s:std_in=1
-"autocmd VimEnter * NERDTree
 
 let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
@@ -178,6 +205,11 @@ set shortmess+=c
 
 " always show signcolumns
 set signcolumn=yes
+
+" Only show sessions on the startify screen
+let g:startify_lists = [
+          \ { 'type': 'sessions',  'header': ['   Sessions']       },
+          \ ]
 
 " Use tab for trigger completion with characters ahead and navigate.
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
@@ -271,6 +303,8 @@ command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organize
 
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
 set statusline=
+set statusline+=%{FugitiveStatusline()}     " Git branch
+set statusline+=\                           " Space
 set statusline+=%t                          " File name
 set statusline+=%=                          " Right align
 set statusline+=%10((%l,%c)%)               " Line and column
@@ -333,4 +367,7 @@ function ShowOneWin()
   :exe "normal \<C-w>|"
   :let g:oneWinShown = 1
 endfunction
+
+" Make column gutter background color match theme when using VGit
+highlight clear SignColumn
 
