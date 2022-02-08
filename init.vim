@@ -60,32 +60,18 @@ lua << EOF
 require('vgit').setup()
 EOF
 
-" Startify settings
-"let g:startify_session_persistence = 1
-
 " Custom global variables
 let g:oneWinShown = 0
 
 " Prevent :qa from closing neovim, instead offer to save session, and then
-" return to Startify. Neovim can then be exited from Startify (q or :q). Close
-" nerd tree first to prevent issues with saving session.
-cabbrev qa :NERDTreeClose<CR><bar>:SSave<CR><bar>:SClose<CR>lcd %:p:h<CR>
+" return to Startify. Neovim can then be exited from Startify by pressing q.
+" Close nerd tree first to prevent issues with saving session.
+" lcd %:p:h will write cwd to buffer level, which allows NERDTree to open to
+" the correct cwd after opening a session.
+cabbrev qa :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR>
 
-" Set cwd of buffer so that nerd tree can open the correct cwd upon session
-" being restored
-"autocmd BufEnter * 
-
-" Markbar settings
-"function! FormatMarks(mark_data) abort
-  "return printf('l: %4d', mark_data['line'])
-"endfunction
-
-"let g:markbar_num_lines_context = 1
-"let g:markbar_mark_name_format_string = '%s'
-"let g:markbar_mark_name_arguments = [ function('FormatMarks')]
-"let g:markbar_file_mark_format_string = '%s'
-"let g:markbar_file_mark_arguments = [ function('FormatMarks')]
-"let g:markbar_peekaboo_width = 50 
+" if: closing the last buffer then: open startify, otherwise: send q as usual
+cabbrev q :if 1 == winnr('$') <bar> :SClose <bar> else <bar> q <bar> endif
 
 " Highlight the current line
 set cursorline
@@ -144,7 +130,6 @@ command! -nargs=0 Prettier :CocCommand prettier.formatFile
 " run prettier on save
 "let g:prettier#autoformat = 0
 "autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.yaml,*.html PrettierAsync
-
 
 " ctrlp
 let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
