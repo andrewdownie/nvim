@@ -1,14 +1,13 @@
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
 
+" Libraries
+Plug 'nvim-lua/plenary.nvim' "vgit and vim-nerdtree-tabs depend on plenary
+
 " Smooth scroll
 Plug 'yuttie/comfortable-motion.vim'
 
-" Libraries
-Plug 'nvim-lua/plenary.nvim'
-
-" Start screen for vim (hoping to use this to save and load sessions with a
-" GUI)
+" Start screen for vim
 Plug 'mhinz/vim-startify' 
 
 " Code completion (how do I setup language servers tho?)
@@ -65,13 +64,33 @@ let g:oneWinShown = 0
 
 " Prevent :qa from closing neovim, instead offer to save session, and then
 " return to Startify. Neovim can then be exited from Startify by pressing q.
-" Close nerd tree first to prevent issues with saving session.
+" Enter blank name to not save.
+" Close nerd tree first to prevent issues with loading session.
 " lcd %:p:h will write cwd to buffer level, which allows NERDTree to open to
 " the correct cwd after opening a session.
 cabbrev qa :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR>
 
+function Quit()
+  let winCount = winnr('$')
+  let tabCount = tabpagenr('$')
+
+  " If the current window is not NERDTree, but nerd tree is open, subtract one
+  " from winCount
+  if !exists('b:NERDTree') && exists('g:NERDTree') && g:NERDTree.IsOpen()
+    let winCount = winCount - 1
+  endif
+
+  " If there's one window and one tab left go to startify
+  if 1 == winCount && 1 == tabCount
+    :NERDTreeClose
+    :SClose
+  else
+    :q
+  endif
+endfunction
+
 " if: closing the last buffer then: open startify, otherwise: send q as usual
-cabbrev q :if 1 == winnr('$') <bar> :SClose <bar> else <bar> q <bar> endif
+cabbrev q call Quit()
 
 " Highlight the current line
 set cursorline
@@ -79,10 +98,13 @@ set cursorline
 " Ignorecase while searching
 set ignorecase
 
+" set ruler for  line length of 80
+set colorcolumn=80
+
 " Open neovim rc
 command Vimrc :e $MYVIMRC
 
-" Close nerd tree when doing a vertical diff
+" Close nerd tree when doing a vertical diff using vgit
 nnoremap dv :NERDTreeClose
 
 " Open fugitive (interactive equivalent of 'git status')
@@ -100,7 +122,8 @@ vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
 " Sync nerd tree between tabs
-autocmd BufWinEnter * NERDTreeMirror
+"autocmd BufWinEnter * NERDTreeMirror " TODO: use nerd tree tabs plugin
+"instead (maybe it'll work with sessions properly?)
 
 let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
@@ -166,8 +189,9 @@ function! SyncTree()
 endfunction
 
 " Highlight currently open buffer in NERDTree
-"autocmd BufEnter * call SyncTree()
-autocmd BufRead * call SyncTree()
+"autocmd BufEnter * call SyncTree() " TODO: I think there are causing issues
+"for me
+"autocmd BufRead * call SyncTree()
 
 "\ 'coc-snippets', " causes python errors and I don't really care about
 " snippets
