@@ -59,6 +59,15 @@ lua << EOF
 require('vgit').setup()
 EOF
 
+" Setup for toggleterm
+  "shell = :set shell
+let shell = &shell
+lua << EOF
+require("toggleterm").setup{
+  shell = shell
+}
+EOF
+
 " Custom global variables
 let g:oneWinShown = 0
 
