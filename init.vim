@@ -10,6 +10,9 @@ Plug 'yuttie/comfortable-motion.vim'
 " Start screen for vim
 Plug 'mhinz/vim-startify' 
 
+" Tab numbers
+Plug 'mkitt/tabline.vim'
+
 " Code completion (how do I setup language servers tho?)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
@@ -113,7 +116,7 @@ set colorcolumn=80
 " Open neovim rc
 command Vimrc :e $MYVIMRC
 
-" Close nerd tree when doing a vertical diff using vgit
+" Close nerd tree when doing a vertical diff using fugitive
 nnoremap dv :NERDTreeClose
 
 " Open fugitive (interactive equivalent of 'git status')

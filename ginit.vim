@@ -6,6 +6,9 @@ if !exists('g:os')
   endif
 endif
 
+" Disable GUI based tabline in order to use TUI based tabline
+GuiTabline 0
+
 " Set font
 if exists(':GuiFont')
   if g:os == 'Windows'
