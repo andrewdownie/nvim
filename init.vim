@@ -10,6 +10,9 @@ Plug 'yuttie/comfortable-motion.vim'
 " Start screen for vim
 Plug 'mhinz/vim-startify' 
 
+" Line
+Plug 'itchyny/lightline.vim'
+
 " Tab numbers
 Plug 'mkitt/tabline.vim'
 
@@ -64,14 +67,6 @@ lua << EOF
 require('vgit').setup()
 EOF
 
-" Setup for toggleterm
-let shell = &shell
-lua << EOF
-require("toggleterm").setup{
-  shell = shell
-}
-EOF
-
 " Custom global variables
 let g:oneWinShown = 0
 
@@ -83,7 +78,10 @@ let g:oneWinShown = 0
 " the correct cwd after opening a session.
 cabbrev qa :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR>
 
-function Quit()
+" Same as qa mapping but exit startify immediately
+cabbrev qaq :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR> q
+
+function QuitButDontLeave()
   let winCount = winnr('$')
   let tabCount = tabpagenr('$')
 
@@ -97,6 +95,13 @@ function Quit()
     if 1 == tabCount
       " if this is the last tab, close buffer and open a new one
       :enew
+      if !g:NERDTree.IsOpen()
+        " Open nerd tree if it's not open
+        :NERDTree
+      else
+        " Jump to nerd tree if it is open
+        :exe "normal 1\<C-w>w"
+      endif
     else
       " if this isn't the last tab, close the current tab
       :tabclose
@@ -107,7 +112,8 @@ function Quit()
 endfunction
 
 " if: closing the last buffer then: open startify, otherwise: send q as usual
-cabbrev q call Quit()
+cabbrev q call QuitButDontLeave()
+cabbrev wq w <bar> call QuitButDontLeave()
 
 " Highlight the current line
 set cursorline
@@ -125,10 +131,11 @@ command Vimrc :e $MYVIMRC
 nnoremap dv :NERDTreeClose
 
 " Open fugitive (interactive equivalent of 'git status')
-nmap <C-g> :NERDTreeClose<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>6j
+nmap <C-g> :tabnew<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>5j
 " Open fugitive git blame map (press 'o' to open version from that commit, you
 " can then recursively call git blame on that commit)
 nmap <C-b> :Git blame<CR>
+
 
 " ctrl+n to open nerdtree (n for nerdtree)
 nnoremap <C-n> :NERDTreeToggle<CR>
@@ -138,9 +145,9 @@ nnoremap <C-n> :NERDTreeToggle<CR>
 vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
-" Sync nerd tree between tabs
-"autocmd BufWinEnter * NERDTreeMirror " TODO: use nerd tree tabs plugin
-"instead (maybe it'll work with sessions properly?)
+"autocmd TabNewEntered * NERDTree " Open nerdtree in new tabs
+autocmd SessionLoadPost * NERDTree " Load nerdtree after loading a session (from startify for example)
+"autoc TermOpen * TermExec 1 direction=float cmd="bash<CR>"<CR>
 
 let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
@@ -224,7 +231,7 @@ let g:coc_global_extensions = [
 " from readme
 " if hidden is not set, TextEdit might fail.
 set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup " Better display for messages set cmdheight=2 " You will have bad experience for diagnostic messages when it's default 4000.
-set updatetime=300
+set updatetime=10000 " This lags my work laptop. Much professional device.
 
 " don't give |ins-completion-menu| messages.
 set shortmess+=c
@@ -281,7 +288,7 @@ function! s:show_documentation()
 endfunction
 
 " Highlight symbol under cursor on CursorHold
-autocmd CursorHold * silent call CocActionAsync('highlight')
+autocmd CursorHold * silent call CocActionAsync('highlight') 
 
 " Remap for rename current word
 nmap <F2> <Plug>(coc-rename)
@@ -328,10 +335,11 @@ command! -nargs=? Fold :call     CocAction('fold', <f-args>)
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
+" I don't think this is needed with light line
 set statusline=
-set statusline+=%{FugitiveStatusline()}     " Git branch
-set statusline+=\                           " Space
 set statusline+=%t                          " File name
+set statusline+=\                           " Space
+set statusline+=%{FugitiveStatusline()}     " Git branch
 set statusline+=%=                          " Right align
 set statusline+=%10((%l,%c)%)               " Line and column
 set statusline+=\                           " Space
