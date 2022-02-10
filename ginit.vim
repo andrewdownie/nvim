@@ -20,6 +20,6 @@ if exists(':GuiFont')
 endif
 
 if g:os == 'Windows'
-  :set shell=bash
+  :set shell=C:/Program\ Files/Git/bin/bash
 endif
 

@@ -22,7 +22,9 @@ Plug 'tsony-tsonev/nerdtree-git-plugin'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 
 " Fuzzy file search
-Plug 'ctrlpvim/ctrlp.vim' 
+"Plug 'ctrlpvim/ctrlp.vim' " Seems like fzf can do everything ctrlp can do,
+"and more
+Plug 'junegunn/fzf.vim'
 
 " Vim marks
 Plug 'Yilin-Yang/vim-markbar'
@@ -63,7 +65,6 @@ require('vgit').setup()
 EOF
 
 " Setup for toggleterm
-  "shell = :set shell
 let shell = &shell
 lua << EOF
 require("toggleterm").setup{
@@ -86,16 +87,20 @@ function Quit()
   let winCount = winnr('$')
   let tabCount = tabpagenr('$')
 
-  " If the current window is not NERDTree, but nerd tree is open, subtract one
-  " from winCount
+  " If the current window is not NERDTree, but nerd tree is open
   if !exists('b:NERDTree') && exists('g:NERDTree') && g:NERDTree.IsOpen()
     let winCount = winCount - 1
   endif
 
-  " If there's one window and one tab left go to startify
-  if 1 == winCount && 1 == tabCount
-    :NERDTreeClose
-    :SClose
+  if 1 == winCount
+  " If there's two windows left, and the current window is not nerdtree
+    if 1 == tabCount
+      " if this is the last tab, close buffer and open a new one
+      :enew
+    else
+      " if this isn't the last tab, close the current tab
+      :tabclose
+    endif
   else
     :q
   endif
