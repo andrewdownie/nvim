@@ -12,7 +12,8 @@ GuiTabline 0
 " Set font
 if exists(':GuiFont')
   if g:os == 'Windows'
-    GuiFont! FiraCode NF:h9 " Windows compatible version of FiraCode Nerd Font Mono
+    " Windows compatible version of FiraCode Nerd Font Mono
+    GuiFont! FiraCode NF:h9
   else
     GuiFont! FiraCode Nerd Font Mono:h12
   endif
