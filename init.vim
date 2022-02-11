@@ -2,15 +2,15 @@
 call plug#begin('~/.vim/plugged')
 
 " Libraries
-Plug 'nvim-lua/plenary.nvim' "vgit and vim-nerdtree-tabs depend on plenary
+Plug 'nvim-lua/plenary.nvim' "vgit depends on plenary
 
-" Smooth scroll
+" Smooth scroll with ctrl+[ud]
 Plug 'yuttie/comfortable-motion.vim'
 
 " Start screen for vim
 Plug 'mhinz/vim-startify' 
 
-" Line
+" Pretty status line
 Plug 'itchyny/lightline.vim'
 
 " Tab numbers
@@ -25,12 +25,11 @@ Plug 'tsony-tsonev/nerdtree-git-plugin'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 
 " Fuzzy file search
-"Plug 'ctrlpvim/ctrlp.vim' " Seems like fzf can do everything ctrlp can do,
-"and more
-Plug 'junegunn/fzf.vim'
-
-" Vim marks
-Plug 'Yilin-Yang/vim-markbar'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " Needed for *nix, but I don't think this does anything for windows, see below.
+Plug 'junegunn/fzf.vim' " Use ripgrep / fzf with a pretty TUI
+" fzf needs to be runnable via cmd prompt for windows usage. choco install fzf
+" ripgrep needs to be runnable via cmd propmpt for windows usage. choco
+" install ripgrep
 
 " Toggle line comment with ctrl+/ in command mode
 Plug 'scrooloose/nerdcommenter'
@@ -58,7 +57,7 @@ Plug 'ryanoasis/vim-devicons'
 Plug 'morhetz/gruvbox'
 
 " Syntax
-Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
+"Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
 
 call plug#end()
 
@@ -68,7 +67,15 @@ require('vgit').setup()
 EOF
 
 " Custom global variables
-let g:oneWinShown = 0
+if !exists('g:oneWinShown')
+  let g:oneWinShown = 0
+endif
+
+" Always show tabline
+set showtabline=2
+
+" Set gruvbox theme to darkest
+let g:gruvbox_contrast_dark="hard"
 
 " Prevent :qa from closing neovim, instead offer to save session, and then
 " return to Startify. Neovim can then be exited from Startify by pressing q.
@@ -81,7 +88,7 @@ cabbrev qa :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClos
 " Same as qa mapping but exit startify immediately
 cabbrev qaq :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR> q
 
-function QuitButDontLeave()
+function QuitButDontExit()
   let winCount = winnr('$')
   let tabCount = tabpagenr('$')
 
@@ -98,6 +105,7 @@ function QuitButDontLeave()
       if !g:NERDTree.IsOpen()
         " Open nerd tree if it's not open
         :NERDTree
+        :echo 'run :qa to save and end session, or :qaq to save session and exit vim'
       else
         " Jump to nerd tree if it is open
         :exe "normal 1\<C-w>w"
@@ -112,8 +120,8 @@ function QuitButDontLeave()
 endfunction
 
 " if: closing the last buffer then: open startify, otherwise: send q as usual
-cabbrev q call QuitButDontLeave()
-cabbrev wq w <bar> call QuitButDontLeave()
+cabbrev q call QuitButDontExit()
+cabbrev wq w <bar> call QuitButDontExit()
 
 " Highlight the current line
 set cursorline
@@ -130,15 +138,26 @@ command Vimrc :e $MYVIMRC
 " Close nerd tree when doing a vertical diff using fugitive
 nnoremap dv :NERDTreeClose
 
+" Open fuzzy file search
+nnoremap <C-p> :Files<CR>
+
+" Open marks menu
+nnoremap ' :Marks<CR>
+
 " Open fugitive (interactive equivalent of 'git status')
-nmap <C-g> :tabnew<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>5j
+nnoremap <C-g> :tabnew<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>5j
 " Open fugitive git blame map (press 'o' to open version from that commit, you
 " can then recursively call git blame on that commit)
-nmap <C-b> :Git blame<CR>
-
+nnoremap <C-b> :Git blame<CR>
 
 " ctrl+n to open nerdtree (n for nerdtree)
-nnoremap <C-n> :NERDTreeToggle<CR>
+nnoremap <C-n> :NERDTreeToggle<CR> <bar> <C-w>=
+
+" ctrl+= to open new tab
+nnoremap <C-=> :tabnew<CR>
+
+" ctrl+- to close current tab
+nnoremap <C--> :tabclose<CR>
 
 " Comment a list using ctrl+/ in command mode (save as VSCode with vim
 " extension)
@@ -146,7 +165,7 @@ vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
 "autocmd TabNewEntered * NERDTree " Open nerdtree in new tabs
-autocmd SessionLoadPost * NERDTree " Load nerdtree after loading a session (from startify for example)
+"autocmd SessionLoadPost * NERDTree " Load nerdtree after loading a session (from startify for example)
 "autoc TermOpen * TermExec 1 direction=float cmd="bash<CR>"<CR>
 
 let NERDTreeShowLineNumbers=1
@@ -190,8 +209,8 @@ set number relativenumber
 
 set smarttab
 set cindent
-set tabstop=2
-set shiftwidth=2
+set tabstop=4
+set shiftwidth=4
 " always uses spaces instead of tab characters
 set expandtab
 
@@ -200,7 +219,7 @@ colorscheme gruvbox
 " sync open file with NERDTree
 " " Check if NERDTree is open or active
 function! IsNERDTreeOpen()        
-  return exists("t:NERDTreeBufName") && (bufwinnr(t:NERDTreeBufName) != -1)
+    return exists("t:NERDTreeBufName") && (bufwinnr(t:NERDTreeBufName) != -1)
 endfunction
 
 " Call NERDTreeFind iff NERDTree is active, current window contains a modifiable
@@ -389,14 +408,14 @@ nnoremap <expr><C-,> g:oneWinShown == 1
       \ : ':call ShowOneWin()<CR>'
 
 function ShowAllWin()
-  :NERDTree
   :exe "normal \<C-w>="
-  :wincmd p
   :let g:oneWinShown = 0
 endfunction
 
 function ShowOneWin()
-  :NERDTreeClose
+  if g:NERDTree.IsOpen()
+    :NERDTreeClose
+  endif
   :exe "normal \<C-w>_"
   :exe "normal \<C-w>|"
   :let g:oneWinShown = 1
