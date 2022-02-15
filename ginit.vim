@@ -13,16 +13,17 @@ GuiTabline 0
 if exists(':GuiFont')
   if g:os == 'Windows'
     " Windows compatible version of FiraCode Nerd Font Mono
-    GuiFont! FiraCode NF:h9
+    GuiFont! FiraCode NF:h10
   else
     GuiFont! FiraCode Nerd Font Mono:h12
   endif
 endif
 
-"if g:os == 'Windows'
+if g:os == 'Windows'
+   "let &shell='wsl'
   " Setting terminal to bash breaks toggle term, doesn't seem like the plugin was
   " tested with windows
-   "let &shell='bash'
+   "let &shell='sh'
    "let &shellcmdflag = '-c'
    "let &shellredir = '>%s 2>&1'
    "set shellquote= shellxescape=
@@ -30,5 +31,5 @@ endif
    "set shellxquote=
    "let &shellpipe='2>&1| tee' "set shellquote= shellxquote=
    "let $TMP="/tmp"
-"endif
+endif
 

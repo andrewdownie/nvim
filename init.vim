@@ -17,16 +17,28 @@ Plug 'itchyny/lightline.vim'
 Plug 'mkitt/tabline.vim'
 
 " Code completion (how do I setup language servers tho?)
+" If you get coc errors on start up, you may need to go to ~\.vim\plugged\coc.nvim, and then run npm install
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+"Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+
+" Scrollbar for vim
+Plug 'dstein64/nvim-scrollview'
+
+" Ability to create a personal wiki in vim?
+"Plug 'alok/notational-fzf-vim' " TODO: Needs a little setup
+
+" Windows that are focused on particual lines of code?
+"Plug 'hoschi/yode-nvim'
 
 " File list
 Plug 'scrooloose/nerdtree'
 Plug 'tsony-tsonev/nerdtree-git-plugin'
-Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+"Plug 'tiagofum/vimnerdtree-syntax-highlight' " For some reason this now
+"refuses to download
 
 " Fuzzy file search
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " Needed for *nix, but I don't think this does anything for windows, see below.
-Plug 'junegunn/fzf.vim' " Use ripgrep / fzf with a pretty TUI
+Plug 'junegunn/fzf.vim'
 " fzf needs to be runnable via cmd prompt for windows usage. choco install fzf
 " ripgrep needs to be runnable via cmd propmpt for windows usage. choco
 " install ripgrep
@@ -70,12 +82,29 @@ EOF
 if !exists('g:oneWinShown')
   let g:oneWinShown = 0
 endif
+let g:ReopenNERDTree = exists('g:NERDTree') && g:NERDTree.IsOpen()
+
+" Save global variables that start with a capital to the current session
+:set sessionoptions+=globals
 
 " Always show tabline
 set showtabline=2
 
+" Allow mouse scrolling and selection
+set mouse=a
+
 " Set gruvbox theme to darkest
 let g:gruvbox_contrast_dark="hard"
+
+" Hide the preview window in fzf
+let g:fzf_preview_window = []
+
+" Make ripgrep ignore files in .gitignore
+let $FZF_DEFAULT_COMMAND = 'rg --files --hidden'
+
+" Set scroll bar width to 10 characters
+let g:scrollview_on_startup = 0
+let g:scrollview_current_only = 1
 
 " Prevent :qa from closing neovim, instead offer to save session, and then
 " return to Startify. Neovim can then be exited from Startify by pressing q.
@@ -83,10 +112,20 @@ let g:gruvbox_contrast_dark="hard"
 " Close nerd tree first to prevent issues with loading session.
 " lcd %:p:h will write cwd to buffer level, which allows NERDTree to open to
 " the correct cwd after opening a session.
-cabbrev qa :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR>
+function ExitSession()
+ :ScrollViewDisable
+ :let g:ReopenNERDTree = g:NERDTree.IsOpen()
+ :let g:SessionCwd = getcwd()
+ :NERDTreeClose
+ :SSave!
+ :SClose
+endfunction
 
-" Same as qa mapping but exit startify immediately
-cabbrev qaq :NERDTreeClose<CR> <bar> :lcd %:p:h<CR> <bar> :SSave<CR> <bar> :SClose<CR> q
+" Save and return to startify
+cabbrev qa :call ExitSession()
+
+" Save and exit Neovim
+cabbrev qaq :call ExitSession() <bar> :exit
 
 function QuitButDontExit()
   let winCount = winnr('$')
@@ -104,7 +143,7 @@ function QuitButDontExit()
       :enew
       if !g:NERDTree.IsOpen()
         " Open nerd tree if it's not open
-        :NERDTree
+        execute 'NERDTree' getcwd()
         :echo 'run :qa to save and end session, or :qaq to save session and exit vim'
       else
         " Jump to nerd tree if it is open
@@ -141,6 +180,9 @@ nnoremap dv :NERDTreeClose
 " Open fuzzy file search
 nnoremap <C-p> :Files<CR>
 
+" Open fuzzy search in files
+nnoremap <C-f> :Rg<CR>
+
 " Open marks menu
 nnoremap ' :Marks<CR>
 
@@ -151,7 +193,7 @@ nnoremap <C-g> :tabnew<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>5
 nnoremap <C-b> :Git blame<CR>
 
 " ctrl+n to open nerdtree (n for nerdtree)
-nnoremap <C-n> :NERDTreeToggle<CR> <bar> <C-w>=
+nnoremap <C-n> :execute 'NERDTreeToggle' getcwd()<CR> <bar> <C-w>=
 
 " ctrl+= to open new tab
 nnoremap <C-=> :tabnew<CR>
@@ -165,8 +207,24 @@ vmap <C-/> <plug>NERDCommenterToggle
 nmap <C-/> <plug>NERDCommenterToggle
 
 "autocmd TabNewEntered * NERDTree " Open nerdtree in new tabs
-"autocmd SessionLoadPost * NERDTree " Load nerdtree after loading a session (from startify for example)
+autocmd SessionLoadPost * :call SessionLoadPost() " Load nerdtree after loading a session (from startify for example)
 "autoc TermOpen * TermExec 1 direction=float cmd="bash<CR>"<CR>
+
+function SessionLoadPost()
+    execute 'cd' g:SessionCwd
+    let firstLineContents = getline(1)
+    let winCount = winnr('$')
+    let lineCount = line('$')
+
+    let emptyWinOnly = 1 == winCount && 1 == lineCount && '' == firstLineContents
+
+    " Open nerdtree if only file is empty
+    if emptyWinOnly || g:ReopenNERDTree
+        execute 'NERDTree' g:SessionCwd
+    endif
+
+    :ScrollViewEnable
+endfunction
 
 let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
@@ -355,14 +413,14 @@ command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organize
 
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
 " I don't think this is needed with light line
-set statusline=
-set statusline+=%t                          " File name
-set statusline+=\                           " Space
-set statusline+=%{FugitiveStatusline()}     " Git branch
-set statusline+=%=                          " Right align
-set statusline+=%10((%l,%c)%)               " Line and column
-set statusline+=\                           " Space
-set statusline+=%-3P                        " Percentage
+"set statusline=
+"set statusline+=%t                          " File name
+"set statusline+=\                           " Space
+"set statusline+=%{FugitiveStatusline()}     " Git branch
+"set statusline+=%=                          " Right align
+"set statusline+=%10((%l,%c)%)               " Line and column
+"set statusline+=\                           " Space
+"set statusline+=%-3P                        " Percentage
 "set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
 " Stop space bar from moving cursor in normal mode to make it more comfortable
@@ -378,7 +436,7 @@ nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
 nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document
 nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
-nnoremap <silent> <C-;>  :<C-u>CocList outline<cr>
+nnoremap <silent> <C-o>  :<C-u>CocList outline<cr>
 " Search workspace symbols
 nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item.
@@ -408,13 +466,18 @@ nnoremap <expr><C-,> g:oneWinShown == 1
       \ : ':call ShowOneWin()<CR>'
 
 function ShowAllWin()
-  :exe "normal \<C-w>="
   :let g:oneWinShown = 0
+  if 1 == g:ReopenNERDTree
+      :NERDTree
+      let g:ReopenNERDTree = 0
+  endif
+  :exe "normal \<C-w>="
 endfunction
 
 function ShowOneWin()
-  if g:NERDTree.IsOpen()
+  if exists('g:NERDTree') && g:NERDTree.IsOpen()
     :NERDTreeClose
+    let g:ReopenNERDTree = 1
   endif
   :exe "normal \<C-w>_"
   :exe "normal \<C-w>|"
