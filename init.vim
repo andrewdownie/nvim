@@ -78,6 +78,9 @@ lua << EOF
 require('vgit').setup()
 EOF
 
+" set NERDTree width
+let g:NERDTreeWinSize=45
+
 " Custom global variables
 if !exists('g:oneWinShown')
   let g:oneWinShown = 0
