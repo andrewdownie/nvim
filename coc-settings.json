@@ -1,9 +1,0 @@
-{
-  "suggest.noselect": false,
-  "snippets.ultisnips.usePythonx": false,
-  "coc.preferences.formatOnSaveFiletypes": [
-    "javascript",
-    "json",
-    "javascriptreact"
-  ]
-}

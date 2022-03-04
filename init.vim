@@ -1,3 +1,16 @@
+" TODO:
+" - testing with 'vim-test/vim-test'
+" - debugging with 'puremourning/vimspector'
+" - editing with neovims built in lsp
+"   - java
+"     - lombok?
+"   - node + react
+"   - python
+" - open a new window by default when fuzzy searching for a file with ctrl+p extension
+" - custom display with 'sidebar-nvim/sidebar.nvim'
+" - syntax highlighting for jsx
+" - autoload seperate config for different languages (could this be set session level?)
+
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
 
@@ -16,10 +29,11 @@ Plug 'itchyny/lightline.vim'
 " Tab numbers
 Plug 'mkitt/tabline.vim'
 
-" Code completion (how do I setup language servers tho?)
-" If you get coc errors on start up, you may need to go to ~\.vim\plugged\coc.nvim, and then run npm install
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-"Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+" Improved Java syntax highlighting
+Plug 'uiiaoo/java-syntax.vim'
+
+" Language server for neovim
+Plug 'mfussenegger/nvim-jdtls'
 
 " Scrollbar for vim
 Plug 'dstein64/nvim-scrollview'
@@ -27,17 +41,16 @@ Plug 'dstein64/nvim-scrollview'
 " Ability to create a personal wiki in vim?
 "Plug 'alok/notational-fzf-vim' " TODO: Needs a little setup
 
-" Windows that are focused on particual lines of code?
-"Plug 'hoschi/yode-nvim'
+" Windows that are focused on particular lines of code?
+"Plug 'hoschi/yode-nvim' " TODO: I have no idea how to use this yet
 
 " File list
 Plug 'scrooloose/nerdtree'
 Plug 'tsony-tsonev/nerdtree-git-plugin'
-"Plug 'tiagofum/vimnerdtree-syntax-highlight' " For some reason this now
-"refuses to download
 
 " Fuzzy file search
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } } " Needed for *nix, but I don't think this does anything for windows, see below.
+
 Plug 'junegunn/fzf.vim'
 " fzf needs to be runnable via cmd prompt for windows usage. choco install fzf
 " ripgrep needs to be runnable via cmd propmpt for windows usage. choco
@@ -57,7 +70,7 @@ Plug 'tanvirtin/vgit.nvim'
 Plug 'christoomey/vim-tmux-navigator'
 
 " Ability to toggle terminal vscode style
-Plug 'akinsho/toggleterm.nvim'
+"Plug 'akinsho/toggleterm.nvim'
 
 " Linting
 Plug 'prettier/vim-prettier', { 'do': 'npm install' }
@@ -68,18 +81,12 @@ Plug 'ryanoasis/vim-devicons'
 " Themes
 Plug 'morhetz/gruvbox'
 
-" Syntax
-"Plug 'HerringtonDarkholme/yats.vim' " TS Syntax
-
 call plug#end()
 
 " Setup required for vgit to work
 lua << EOF
 require('vgit').setup()
 EOF
-
-" set NERDTree width
-let g:NERDTreeWinSize=45
 
 " Custom global variables
 if !exists('g:oneWinShown')
@@ -89,9 +96,6 @@ let g:ReopenNERDTree = exists('g:NERDTree') && g:NERDTree.IsOpen()
 
 " Save global variables that start with a capital to the current session
 :set sessionoptions+=globals
-
-" Always show tabline
-set showtabline=2
 
 " Allow mouse scrolling and selection
 set mouse=a
@@ -117,6 +121,7 @@ let g:scrollview_current_only = 1
 " the correct cwd after opening a session.
 function ExitSession()
  :ScrollViewDisable
+ :set showtabline=1
  :let g:ReopenNERDTree = g:NERDTree.IsOpen()
  :let g:SessionCwd = getcwd()
  :NERDTreeClose
@@ -226,6 +231,7 @@ function SessionLoadPost()
         execute 'NERDTree' g:SessionCwd
     endif
 
+    :set showtabline=2
     :ScrollViewEnable
 endfunction
 
@@ -233,84 +239,24 @@ let NERDTreeShowLineNumbers=1
 autocmd FileType nerdtree setlocal relativenumber
 
 let g:NERDTreeGitStatusWithFlags = 1
-"let g:WebDevIconsUnicodeDecorateFolderNodes = 1
-"let g:NERDTreeGitStatusNodeColorization = 1
-"let g:NERDTreeColorMapCustom = {
-    "\ "Staged"    : "#0ee375",  
-    "\ "Modified"  : "#d9bf91",  
-    "\ "Renamed"   : "#51C9FC",  
-    "\ "Untracked" : "#FCE77C",  
-    "\ "Unmerged"  : "#FC51E6",  
-    "\ "Dirty"     : "#FFBD61",  
-    "\ "Clean"     : "#87939A",   
-    "\ "Ignored"   : "#808080"   
-    "\ }                         
-
 
 let g:NERDTreeIgnore = ['^node_modules$']
 
-" vim-prettier
-"let g:prettier#quickfix_enabled = 0
-"let g:prettier#quickfix_auto_focus = 0
-" prettier command for coc
-command! -nargs=0 Prettier :CocCommand prettier.formatFile
-" run prettier on save
-"let g:prettier#autoformat = 0
-"autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.md,*.vue,*.yaml,*.html PrettierAsync
-
-" ctrlp
+" ctrlp - exclusions
 let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
 
-" j/k will move virtual lines (lines that wrap)
-noremap <silent> <expr> j (v:count == 0 ? 'gj' : 'j')
-noremap <silent> <expr> k (v:count == 0 ? 'gk' : 'k')
-
-" Hybrid number mode
+" Hybrid line number
 set number relativenumber
-
 set smarttab
 set cindent
 set tabstop=4
 set shiftwidth=4
-" always uses spaces instead of tab characters
+" always uses spaces instead of tab characters (...why?)
 set expandtab
 
 colorscheme gruvbox
 
-" sync open file with NERDTree
-" " Check if NERDTree is open or active
-function! IsNERDTreeOpen()        
-    return exists("t:NERDTreeBufName") && (bufwinnr(t:NERDTreeBufName) != -1)
-endfunction
-
-" Call NERDTreeFind iff NERDTree is active, current window contains a modifiable
-" file, and we're not in vimdiff
-function! SyncTree()
-  if &modifiable && IsNERDTreeOpen() && strlen(expand('%')) > 0 && !&diff
-    NERDTreeFind
-    wincmd p
-  endif
-endfunction
-
-" Highlight currently open buffer in NERDTree
-"autocmd BufEnter * call SyncTree() " TODO: I think there are causing issues
-"for me
-"autocmd BufRead * call SyncTree()
-
-"\ 'coc-snippets', " causes python errors and I don't really care about
-" snippets
-
-" coc config
-let g:coc_global_extensions = [
-  \ 'coc-pairs',
-  \ 'coc-tsserver',
-  \ 'coc-eslint', 
-  \ 'coc-prettier', 
-  \ 'coc-json', 
-  \ ]
-" from readme
-" if hidden is not set, TextEdit might fail.
-set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup " Better display for messages set cmdheight=2 " You will have bad experience for diagnostic messages when it's default 4000.
+set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup .
 set updatetime=10000 " This lags my work laptop. Much professional device.
 
 " don't give |ins-completion-menu| messages.
@@ -323,131 +269,6 @@ set signcolumn=yes
 let g:startify_lists = [
           \ { 'type': 'sessions',  'header': ['   Sessions']       },
           \ ]
-
-" Use tab for trigger completion with characters ahead and navigate.
-" Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
-" Use <c-space> to trigger completion.
-inoremap <silent><expr> <c-space> coc#refresh()
-
-" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
-" Coc only does snippet and additional edit on confirm.
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-" Or use `complete_info` if your vim support it, like:
-" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-
-" Use `[g` and `]g` to navigate diagnostics
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
-
-" Remap keys for gotos
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-" Use K to show documentation in preview window
-nnoremap <silent> K :call <SID>show_documentation()<CR>
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  else
-    call CocAction('doHover')
-  endif
-endfunction
-
-" Highlight symbol under cursor on CursorHold
-autocmd CursorHold * silent call CocActionAsync('highlight') 
-
-" Remap for rename current word
-nmap <F2> <Plug>(coc-rename)
-
-" Remap for format selected region
-xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
-
-augroup mygroup
-  autocmd!
-  " Setup formatexpr specified filetype(s).
-  autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-  " Update signature help on jump placeholder
-  autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-augroup end
-
-" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
-xmap <leader>a  <Plug>(coc-codeaction-selected)
-nmap <leader>a  <Plug>(coc-codeaction-selected)
-
-" Remap for do codeAction of current line
-nmap <leader>ac  <Plug>(coc-codeaction)
-" Fix autofix problem of current line
-nmap <leader>qf  <Plug>(coc-fix-current)
-
-" Create mappings for function text object, requires document symbols feature of languageserver.
-xmap if <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
-omap if <Plug>(coc-funcobj-i)
-omap af <Plug>(coc-funcobj-a)
-
-" Use <C-d> for select selections ranges, needs server support, like: coc-tsserver, coc-python
-"nmap <silent> <C-d> <Plug>(coc-range-select) " ctrl+d is jump up half a page
-"in default vim
-"xmap <silent> <C-d> <Plug>(coc-range-select)
-
-" Use `:Format` to format current buffer
-command! -nargs=0 Format :call CocAction('format')
-
-" Use `:Fold` to fold current buffer
-command! -nargs=? Fold :call     CocAction('fold', <f-args>)
-
-" use `:OR` for organize import of current buffer
-command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
-
-" Add status line support, for integration with other plugin, checkout `:h coc-status`
-" I don't think this is needed with light line
-"set statusline=
-"set statusline+=%t                          " File name
-"set statusline+=\                           " Space
-"set statusline+=%{FugitiveStatusline()}     " Git branch
-"set statusline+=%=                          " Right align
-"set statusline+=%10((%l,%c)%)               " Line and column
-"set statusline+=\                           " Space
-"set statusline+=%-3P                        " Percentage
-"set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
-
-" Stop space bar from moving cursor in normal mode to make it more comfortable
-" to use space bar as a modifier key for coc commands
-nnoremap <space> <nop>
-
-" Using CocList
-" Show all diagnostics
-nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
-" Manage extensions
-nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
-" Show commands
-nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
-" Find symbol of current document
-nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
-nnoremap <silent> <C-o>  :<C-u>CocList outline<cr>
-" Search workspace symbols
-nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
-" Do default action for next item.
-nnoremap <silent> <space>j  :<C-u>CocNext<CR>
-" Do default action for previous item.
-nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
-" Resume latest coc list
-nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 
 " Make ctrlp use Nerd trees current root dir as the search dir
 let g:NERDTreeChDirMode = 2
