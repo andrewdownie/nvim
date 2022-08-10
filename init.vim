@@ -11,6 +11,16 @@
 " - syntax highlighting for jsx
 " - autoload seperate config for different languages (could this be set session level?)
 
+" TODO keybinds to fix:
+" - ctrl+[+-] doesn't work to open new tab / close current tab?
+" - ctrl+[,] doesn't work to maximize current window?
+
+" TODO plugins to fix:
+" - start with NERDTree open for new startify session
+" - file icons aren't being loaded? (did I ever get that setup in the first place?)
+" - git changes aren't being shown in the gutter
+" - git info isn't being shown at the end of the current line, and instead seems to be stuck at the bottom of the file and never changes
+
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
 
@@ -93,6 +103,11 @@ if !exists('g:oneWinShown')
   let g:oneWinShown = 0
 endif
 let g:ReopenNERDTree = exists('g:NERDTree') && g:NERDTree.IsOpen()
+
+" Save startify sessions to docker volume if environment variable is set
+if !empty($PERSISTENT_VOLUME)
+  let g:startify_session_dir = $PERSISTENT_VOLUME . '/.vim/session'
+endif
 
 " Save global variables that start with a capital to the current session
 :set sessionoptions+=globals
