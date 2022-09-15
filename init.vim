@@ -1,28 +1,27 @@
+" WhichKey is bound to <space>
+
 " TODO:
-" - testing with 'vim-test/vim-test'
 " - debugging with 'puremourning/vimspector'
+" - testing with 'vim-test/vim-test'
 " - editing with neovims built in lsp
+"   - node + react
 "   - java
 "     - lombok?
-"   - node + react
 "   - python
 " - open a new window by default when fuzzy searching for a file with ctrl+p extension
 " - custom display with 'sidebar-nvim/sidebar.nvim'
-" - syntax highlighting for jsx
+
 " - autoload seperate config for different languages (could this be set session level?)
-
-" TODO keybinds to fix:
-" - ctrl+[+-] doesn't work to open new tab / close current tab?
-" - ctrl+[,] doesn't work to maximize current window?
-
-" TODO plugins to fix:
-" - start with NERDTree open for new startify session
-" - file icons aren't being loaded? (did I ever get that setup in the first place?)
-" - git changes aren't being shown in the gutter
-" - git info isn't being shown at the end of the current line, and instead seems to be stuck at the bottom of the file and never changes
 
 " Specify a directory for plugins
 call plug#begin('~/.vim/plugged')
+
+"Themes
+Plug 'morhetz/gruvbox'
+Plug 'mhartington/oceanic-next'
+
+" Show custom hotkeys
+Plug 'folke/which-key.nvim'
 
 " Libraries
 Plug 'nvim-lua/plenary.nvim' "vgit depends on plenary
@@ -47,6 +46,13 @@ Plug 'mfussenegger/nvim-jdtls'
 
 " Scrollbar for vim
 Plug 'dstein64/nvim-scrollview'
+
+" Minimap -> doesn't work atm?
+Plug 'severin-lemaignan/vim-minimap'
+
+" Pretty error panel
+" Plug 'folke/trouble.nvim'
+" 
 
 " Ability to create a personal wiki in vim?
 "Plug 'alok/notational-fzf-vim' " TODO: Needs a little setup
@@ -80,7 +86,7 @@ Plug 'tanvirtin/vgit.nvim'
 Plug 'christoomey/vim-tmux-navigator'
 
 " Ability to toggle terminal vscode style
-"Plug 'akinsho/toggleterm.nvim'
+Plug 'akinsho/toggleterm.nvim'
 
 " Linting
 Plug 'prettier/vim-prettier', { 'do': 'npm install' }
@@ -88,8 +94,14 @@ Plug 'prettier/vim-prettier', { 'do': 'npm install' }
 " Icons
 Plug 'ryanoasis/vim-devicons'
 
-" Themes
-Plug 'morhetz/gruvbox'
+" React, nodejs and jsx
+Plug 'mxw/vim-jsx'
+
+Plug 'pangloss/vim-javascript'
+
+Plug 'w0rp/ale' "Linting
+
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' } " Autocomplete
 
 call plug#end()
 
@@ -98,25 +110,43 @@ lua << EOF
 require('vgit').setup()
 EOF
 
+lua << EOF
+  require("which-key").setup {
+            presets = {
+              operators = true, -- adds help for operators like d, y, ... and registers them for motion / text object completion
+          motions = true, -- adds help for motions
+          text_objects = true, -- help for text objects triggered after entering an operator
+          windows = true, -- default bindings on <c-w>
+          nav = true, -- misc bindings to work with windows
+          z = true, -- bindings for folds, spelling and others prefixed with z
+          g = true, -- bindings for prefixed with g
+        }
+      }
+EOF
+
+let g:deoplete#enable_at_startup = 1
+
+let g:ale_linters = {
+\ 'javascript': ['eslint'],
+\}
+
+let g:ale_fixers = {
+\ 'javascript': ['prettier', 'eslint']
+\ }
+
+let g:ale_fix_on_save = 1
+
 " Custom global variables
 if !exists('g:oneWinShown')
   let g:oneWinShown = 0
 endif
 let g:ReopenNERDTree = exists('g:NERDTree') && g:NERDTree.IsOpen()
 
-" Save startify sessions to docker volume if environment variable is set
-if !empty($PERSISTENT_VOLUME)
-  let g:startify_session_dir = $PERSISTENT_VOLUME . '/.vim/session'
-endif
-
 " Save global variables that start with a capital to the current session
 :set sessionoptions+=globals
 
 " Allow mouse scrolling and selection
 set mouse=a
-
-" Set gruvbox theme to darkest
-let g:gruvbox_contrast_dark="hard"
 
 " Hide the preview window in fzf
 let g:fzf_preview_window = []
@@ -153,8 +183,7 @@ cabbrev qaq :call ExitSession() <bar> :exit
 function QuitButDontExit()
   let winCount = winnr('$')
   let tabCount = tabpagenr('$')
-
-  " If the current window is not NERDTree, but nerd tree is open
+zsh:1: command not found: jj
   if !exists('b:NERDTree') && exists('g:NERDTree') && g:NERDTree.IsOpen()
     let winCount = winCount - 1
   endif
@@ -197,8 +226,10 @@ set colorcolumn=80
 " Open neovim rc
 command Vimrc :e $MYVIMRC
 
+nnoremap <space> :WhichKey <CR>
+
 " Close nerd tree when doing a vertical diff using fugitive
-nnoremap dv :NERDTreeClose
+nnoremap dv :NERDTreeClose<CR>
 
 " Open fuzzy file search
 nnoremap <C-p> :Files<CR>
@@ -214,6 +245,9 @@ nnoremap <C-g> :tabnew<CR><bar>:Git<CR><bar><C-w>=<bar>:let g:oneWinShown=0<CR>5
 " Open fugitive git blame map (press 'o' to open version from that commit, you
 " can then recursively call git blame on that commit)
 nnoremap <C-b> :Git blame<CR>
+
+" Show plugin messages
+nnoremap <C-e> :messages<CR>
 
 " ctrl+n to open nerdtree (n for nerdtree)
 nnoremap <C-n> :execute 'NERDTreeToggle' getcwd()<CR> <bar> <C-w>=
@@ -270,6 +304,11 @@ set shiftwidth=4
 set expandtab
 
 colorscheme gruvbox
+"colorscheme oceanicnext
+"
+" Set gruvbox theme to darkest
+"let g:gruvbox_contrast_dark="hard"
+
 
 set hidden " Some servers have issues with backup files, see #649 set nobackup set nowritebackup .
 set updatetime=10000 " This lags my work laptop. Much professional device.
